@@ -1,0 +1,12 @@
+# .goreleaser.yml
+# Build customization
+builds:
+  - main: main.go
+    binary: ecs-bind
+    goos:
+      - windows
+      - darwin
+      - linux
+    goarch:
+      - amd64
+
