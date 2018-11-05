@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -36,6 +37,20 @@ type ContainerMeta struct {
 	MetadataFileStatus   *string        `json:"MetadataFileStatus"`
 }
 
+func readMetaFile(metadataFilePath string) (*ContainerMeta, error) {
+	var containerMeta ContainerMeta
+
+	bytes, err := ioutil.ReadFile(metadataFilePath)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to open ECS_CONTAINER_METADATA_FILE")
+	}
+	if err := json.Unmarshal(bytes, &containerMeta); err != nil {
+		return nil, errors.Wrap(err, "Failed to parse ECS_CONTAINER_METADATA_FILE")
+	}
+
+	return &containerMeta, nil
+}
+
 func execRun(cmd *cobra.Command, args []string) error {
 	dashIx := cmd.ArgsLenAtDash()
 	command, commandArgs := args[dashIx], args[dashIx+1:]
@@ -46,33 +61,41 @@ func execRun(cmd *cobra.Command, args []string) error {
 	// Read $ECS_CONTAINER_METADATA_FILE
 	metadataFilePath, res := os.LookupEnv("ECS_CONTAINER_METADATA_FILE")
 	if !res {
-		return errors.New("Failed to find ECS_CONTAINER_METADATA_FILE")
-	}
-	bytes, err := ioutil.ReadFile(metadataFilePath)
-	if err != nil {
-		return errors.Wrap(err, "Failed to open ECS_CONTAINER_METADATA_FILE")
-	}
-	var containerMeta ContainerMeta
-	if err := json.Unmarshal(bytes, &containerMeta); err != nil {
-		return errors.Wrap(err, "Failed to parse ECS_CONTAINER_METADATA_FILE")
+		return errors.New("Failed to find ECS_CONTAINER_METADATA_FILE environment")
 	}
 
-	// TODO: Ready になるまでの時間があるため、ループにする必要あり
-
-	// parse and export port mappings
-	for _, portMapping := range containerMeta.PortMappings {
-
-		protocol := strings.ToUpper(portMapping.Protocol)
-		containerPort := fmt.Sprintf("%d", portMapping.ContainerPort)
-		hostPort := fmt.Sprintf("%d", portMapping.HostPort)
-
-		envVarKey := fmt.Sprintf("PORT_%s_%s", protocol, containerPort)
-		envVarKeys = append(envVarKeys, envVarKey)
-
-		if env.IsSet(envVarKey) {
-			fmt.Fprintf(os.Stderr, "warning: overwriting environment variable %s\n", envVarKey)
+	// Read meta file until state is ready
+	tryCount := 10
+	for i := 0; i < tryCount; i++ {
+		// parse and export port mappings
+		containerMeta, err := readMetaFile(metadataFilePath)
+		if err != nil {
+			return err
 		}
-		env.Set(envVarKey, hostPort)
+
+		if containerMeta.MetadataFileStatus == nil || *containerMeta.MetadataFileStatus != "READY" {
+			if i == (tryCount - 1) {
+				return errors.New("Failed to read ECS_CONTAINER_METADATA_FILE file, because it is not ready")
+			}
+			time.Sleep(1)
+			continue
+		}
+
+		for _, portMapping := range containerMeta.PortMappings {
+
+			protocol := strings.ToUpper(portMapping.Protocol)
+			containerPort := fmt.Sprintf("%d", portMapping.ContainerPort)
+			hostPort := fmt.Sprintf("%d", portMapping.HostPort)
+
+			envVarKey := fmt.Sprintf("PORT_%s_%s", protocol, containerPort)
+			envVarKeys = append(envVarKeys, envVarKey)
+
+			if env.IsSet(envVarKey) {
+				fmt.Fprintf(os.Stderr, "warning: overwriting environment variable %s\n", envVarKey)
+			}
+			env.Set(envVarKey, hostPort)
+		}
+		break // if file reading succeeded, break the loop
 	}
 
 	if verbose {
