@@ -63,16 +63,16 @@ func execRun(cmd *cobra.Command, args []string) error {
 	for _, portMapping := range containerMeta.PortMappings {
 
 		protocol := strings.ToUpper(portMapping.Protocol)
-		hostPort := portMapping.HostPort
 		containerPort := fmt.Sprintf("%d", portMapping.ContainerPort)
+		hostPort := fmt.Sprintf("%d", portMapping.HostPort)
 
-		envVarKey := fmt.Sprintf("PORT_%s_%d", protocol, hostPort)
+		envVarKey := fmt.Sprintf("PORT_%s_%s", protocol, containerPort)
 		envVarKeys = append(envVarKeys, envVarKey)
 
 		if env.IsSet(envVarKey) {
 			fmt.Fprintf(os.Stderr, "warning: overwriting environment variable %s\n", envVarKey)
 		}
-		env.Set(envVarKey, containerPort)
+		env.Set(envVarKey, hostPort)
 	}
 
 	if verbose {
