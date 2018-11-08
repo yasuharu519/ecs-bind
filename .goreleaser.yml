@@ -10,4 +10,5 @@ builds:
     goarch:
       - amd64
 archive:
+  name_template: "{{ .ProjectName }}-v{{ .Version }}-{{ .Os }}-{{ .Arch }}"
   format: binary
