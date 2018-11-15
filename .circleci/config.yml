@@ -31,7 +31,7 @@ jobs:
           key: build-cache-{{ .Branch }}-{{ .Environment.CIRCLE_BUILD_NUM }}
           paths:
               - /tmp/go/cache
-      - slack/notify
+      - slack/status
   build:
     docker:
       - image: circleci/golang:1.11
@@ -51,7 +51,7 @@ jobs:
           paths:
               - /tmp/go/cache
       - run: go build
-      - slack/notify
+      - slack/status
 workflows:
   version: 2
   build:
