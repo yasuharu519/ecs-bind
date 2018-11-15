@@ -55,4 +55,4 @@ workflows:
       - lint
       - build:
           requires:
-            - test
+            - lint
