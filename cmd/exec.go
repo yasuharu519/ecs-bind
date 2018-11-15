@@ -80,7 +80,7 @@ func execRun(cmd *cobra.Command, args []string) error {
 			if i == (tryCount - 1) {
 				return errors.New("Failed to read ECS_CONTAINER_METADATA_FILE file, because it is not ready")
 			}
-			time.Sleep(1)
+			time.Sleep(1 * time.Second)
 			continue
 		}
 
