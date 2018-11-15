@@ -36,7 +36,7 @@ jobs:
     docker:
       - image: circleci/golang:1.11
         environment:
-          GO111MODULE: "ON"
+          GO111MODULE: "on"
     environment:
       REPO_NAME: "github.com/yasuharu519/ecs-bind"
       GOCACHE: "/tmp/go/cache"
