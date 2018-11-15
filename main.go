@@ -6,7 +6,7 @@ import (
 
 const (
 	// VERSION is the variable to show this tool version
-	VERSION = "0.0.1"
+	VERSION = "0.0.2"
 )
 
 func main() {
