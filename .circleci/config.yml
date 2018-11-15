@@ -63,8 +63,6 @@ jobs:
       REPO_NAME: "github.com/yasuharu519/ecs-bind"
     steps:
       - checkout
-      - restore_cache:
-          key: go-mod-v1-{{ checksum "go.sum" }}
       - run: curl -sL https://git.io/goreleaser | bash
       - slack/notify:
           message: "ecs-bind ${CIRCLE_TAG} is released :tada:"
