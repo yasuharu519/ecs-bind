@@ -20,7 +20,7 @@ jobs:
               - build-cache-{{ .Branch }}-{{ .Environment.CIRCLE_PREVIOUS_BUILD_NUM }}
           paths:
               - /tmp/go/cache
-      - run: golint ./... | xargs -r false
+      - run: golint ./... | tee /dev/tty | xargs -r false
       - save_cache:
           key: go-mod-v1-{{ checksum "go.sum" }}
           paths:
