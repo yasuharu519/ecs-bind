@@ -15,7 +15,7 @@ func init() {
 		"Print more information to STDOUT")
 }
 
-// execCmd represents the exec command
+// RootCmd represents the root command of this tool
 var RootCmd = &cobra.Command{
 	Use:   "ecs-bind",
 	Short: "Executes a command with ecs dynamic meta value as environment",
@@ -29,6 +29,7 @@ var RootCmd = &cobra.Command{
 	RunE: execRun,
 }
 
+// Execute is the function to run root command of this tool
 func Execute() {
 	if _, err := RootCmd.ExecuteC(); err != nil {
 		os.Exit(1)
