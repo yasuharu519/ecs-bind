@@ -20,7 +20,7 @@ type Network struct {
 type PortMapping struct {
 	ContainerPort int64  `json:"ContainerPort"`
 	HostPort      int64  `json:"HostPort"`
-	BindIp        string `json:"BindIp"`
+	BindIP        string `json:"BindIp"`
 	Protocol      string `json:"Protocol"`
 }
 
