@@ -32,7 +32,7 @@ jobs:
           paths:
               - /tmp/go/cache
       - slack/status:
-          fail_only: true
+          fail_only: "true"
   build:
     docker:
       - image: circleci/golang:1.11
