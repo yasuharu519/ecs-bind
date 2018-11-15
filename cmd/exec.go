@@ -12,18 +12,21 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Network is the type task network mode setting
 type Network struct {
 	NetworkMode   string   `json:"NetworkMode"`
 	IPv4Addresses []string `json:"IPv4Addresses"`
 }
 
+// PortMapping is the type task port mapping setting
 type PortMapping struct {
 	ContainerPort int64  `json:"ContainerPort"`
 	HostPort      int64  `json:"HostPort"`
-	BindIp        string `json:"BindIp"`
+	BindIP        string `json:"BindIp"`
 	Protocol      string `json:"Protocol"`
 }
 
+// ContainerMeta is the struct for ecs task meta data
 type ContainerMeta struct {
 	Cluster              string         `json:"Cluster"`
 	ContainerInstanceARN string         `json:"ContainerInstanceARN"`

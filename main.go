@@ -5,6 +5,7 @@ import (
 )
 
 const (
+	// VERSION is the variable to show this tool version
 	VERSION = "0.0.1"
 )
 
