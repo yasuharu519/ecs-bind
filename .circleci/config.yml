@@ -72,9 +72,9 @@ jobs:
               - build-cache-{{ .Branch }}-{{ .Environment.CIRCLE_PREVIOUS_BUILD_NUM }}
           paths:
               - /tmp/go/cache
-      - run: go build
-      - slack/status:
-          fail_only: "true"
+      - run: curl -sL https://git.io/goreleaser | bash
+      - slack/notify:
+          message: "ecs-bind ${CIRCLE_TAG} is released :tada:"
 workflows:
   version: 2
   build:
