@@ -54,6 +54,27 @@ jobs:
       - run: go build
       - slack/status:
           fail_only: true
+  release:
+    docker:
+      - image: circleci/golang:1.11
+        environment:
+          GO111MODULE: "on"
+    environment:
+      REPO_NAME: "github.com/yasuharu519/ecs-bind"
+      GOCACHE: "/tmp/go/cache"
+    steps:
+      - checkout
+      - restore_cache:
+          key: go-mod-v1-{{ checksum "go.sum" }}
+      # Get build cache
+      - restore_cache:
+          keys:
+              - build-cache-{{ .Branch }}-{{ .Environment.CIRCLE_PREVIOUS_BUILD_NUM }}
+          paths:
+              - /tmp/go/cache
+      - run: go build
+      - slack/status:
+          fail_only: true
 workflows:
   version: 2
   build:
@@ -62,3 +83,12 @@ workflows:
       - build:
           requires:
             - lint
+      - release:
+          requires:
+            - build
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /v[0-9]+(\.[0-9]+)*/
+
