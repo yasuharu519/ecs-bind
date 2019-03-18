@@ -28,10 +28,12 @@ type PortMapping struct {
 
 // ContainerMeta is the struct for ecs task meta data
 type ContainerMeta struct {
+	// https://docs.aws.amazon.com/ja_jp/AmazonECS/latest/developerguide/container-metadata.html
 	Cluster              string         `json:"Cluster"`
 	ContainerInstanceARN string         `json:"ContainerInstanceARN"`
 	TaskARN              string         `json:"TaskARN"`
 	ContainerName        string         `json:"ContainerName"`
+	ContainerId          *string        `json:"ContainerID"`
 	DockerContainerName  *string        `json:"DockerContainerName"`
 	ImageID              *string        `json:"ImageID"`
 	ImageName            *string        `json:"ImageName"`
@@ -59,7 +61,6 @@ func execRun(cmd *cobra.Command, args []string) error {
 	command, commandArgs := args[dashIx], args[dashIx+1:]
 
 	env := environ(os.Environ())
-	envVarKeys := make([]string, 0)
 
 	// Read $ECS_CONTAINER_METADATA_FILE
 	metadataFilePath, res := os.LookupEnv("ECS_CONTAINER_METADATA_FILE")
@@ -84,28 +85,44 @@ func execRun(cmd *cobra.Command, args []string) error {
 			continue
 		}
 
-		for _, portMapping := range containerMeta.PortMappings {
-
-			protocol := strings.ToUpper(portMapping.Protocol)
-			containerPort := fmt.Sprintf("%d", portMapping.ContainerPort)
-			hostPort := fmt.Sprintf("%d", portMapping.HostPort)
-
-			envVarKey := fmt.Sprintf("PORT_%s_%s", protocol, containerPort)
-			envVarKeys = append(envVarKeys, envVarKey)
-
-			if env.IsSet(envVarKey) {
-				fmt.Fprintf(os.Stderr, "warning: overwriting environment variable %s\n", envVarKey)
-			}
-			env.Set(envVarKey, hostPort)
-		}
+		setEnvironments(containerMeta, env)
 		break // if file reading succeeded, break the loop
 	}
 
-	if verbose {
-		fmt.Fprintf(os.Stdout, "info: With environment %s\n", strings.Join(envVarKeys, ","))
-	}
 
 	return exec(command, commandArgs, env)
+}
+
+func setEnvironments(containerMeta *ContainerMeta, env environ) {
+	// 1. set env keys into envs
+	envs := map[string]string{}
+	putEnvKeyValue := func (key, value string) {
+		_, exist := envs[key]
+		if exist {
+			fmt.Fprintf(os.Stderr, "warning: overwriting environment variable %s\n", key)
+		}
+		envs[key] = value
+	}
+
+	// container id mapping
+	putEnvKeyValue("CONTAINER_ID", *containerMeta.ContainerId)
+
+	// port mapping
+	for _, portMapping := range containerMeta.PortMappings {
+		protocol := strings.ToUpper(portMapping.Protocol)
+		containerPort := fmt.Sprintf("%d", portMapping.ContainerPort)
+		value := fmt.Sprintf("%d", portMapping.HostPort)
+		key := fmt.Sprintf("PORT_%s_%s", protocol, containerPort)
+		putEnvKeyValue(key, value)
+	}
+
+	// 2. set environment from envs
+	for key, value := range envs {
+		env.Set(key, value)
+		if verbose {
+			fmt.Fprintf(os.Stdout, "info: With environment %s=%s\n", key, value)
+		}
+	}
 }
 
 // environ is a slice of strings representing the environment, in the form "key=value".
