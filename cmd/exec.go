@@ -33,7 +33,7 @@ type ContainerMeta struct {
 	ContainerInstanceARN string         `json:"ContainerInstanceARN"`
 	TaskARN              string         `json:"TaskARN"`
 	ContainerName        string         `json:"ContainerName"`
-	ContainerId          *string        `json:"ContainerID"`
+	ContainerID          *string        `json:"ContainerID"`
 	DockerContainerName  *string        `json:"DockerContainerName"`
 	ImageID              *string        `json:"ImageID"`
 	ImageName            *string        `json:"ImageName"`
@@ -105,7 +105,7 @@ func setEnvironments(containerMeta *ContainerMeta, env environ) {
 	}
 
 	// container id mapping
-	putEnvKeyValue("CONTAINER_ID", *containerMeta.ContainerId)
+	putEnvKeyValue("CONTAINER_ID", *containerMeta.ContainerID)
 
 	// port mapping
 	for _, portMapping := range containerMeta.PortMappings {
