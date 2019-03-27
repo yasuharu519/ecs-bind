@@ -85,7 +85,7 @@ func execRun(cmd *cobra.Command, args []string) error {
 			continue
 		}
 
-		setEnvironments(containerMeta, env)
+		setEnvironments(containerMeta, &env)
 		break // if file reading succeeded, break the loop
 	}
 
@@ -93,7 +93,7 @@ func execRun(cmd *cobra.Command, args []string) error {
 	return exec(command, commandArgs, env)
 }
 
-func setEnvironments(containerMeta *ContainerMeta, env environ) {
+func setEnvironments(containerMeta *ContainerMeta, env *environ) {
 	// 1. set env keys into envs
 	envs := map[string]string{}
 	putEnvKeyValue := func (key, value string) {
